@@ -1,0 +1,111 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net - Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 1. Users Collection
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidId(userId);
+      allow delete: if isOwner(userId);
+
+      // Sub-collections under /users/{userId}
+      match /{subCollection}/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /conversations/{convId}/{subPath=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // 2. Profiles Collection
+    match /profiles/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // 3. Conversations Collection (Top-level)
+    match /conversations/{conversationId} {
+      allow read, write: if isSignedIn() && (
+        (resource == null && request.resource.data.userId == request.auth.uid) ||
+        (resource != null && resource.data.userId == request.auth.uid)
+      );
+
+      // 4. Messages subcollection
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // 5. Projects Collection
+    match /projects/{projectId} {
+      allow read, write: if isSignedIn() && (
+        (resource == null && request.resource.data.userId == request.auth.uid) ||
+        (resource != null && resource.data.userId == request.auth.uid)
+      );
+    }
+
+    // 6. Media Collection
+    match /media/{mediaId} {
+      allow read, write: if isSignedIn() && (
+        (resource == null && request.resource.data.userId == request.auth.uid) ||
+        (resource != null && resource.data.userId == request.auth.uid)
+      );
+    }
+
+    // 7. Settings Collection
+    match /settings/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // 8. Usage Collection
+    match /usage/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // 9. Locations Collection
+    match /locations/{locationId} {
+      allow read, write: if isSignedIn() && (
+        (resource == null && request.resource.data.userId == request.auth.uid) ||
+        (resource != null && resource.data.userId == request.auth.uid)
+      );
+    }
+
+    // Public Shorts feed and interactions
+    match /shorts/{shortId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn() && (request.auth.uid == resource.data.authorId || request.auth.uid == resource.data.userId);
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow delete: if isSignedIn() && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.authorId);
+      }
+    }
+
+    // Connection testing
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+  }
+}

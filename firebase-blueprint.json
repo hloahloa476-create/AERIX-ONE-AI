@@ -1,0 +1,164 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and account information",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 150 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "handle": { "type": "string", "maxLength": 50 },
+        "bio": { "type": "string", "maxLength": 500 },
+        "securityTier": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "email"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "AI conversation session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 150 },
+        "model": { "type": "string", "maxLength": 50 },
+        "language": { "type": "string", "maxLength": 20 },
+        "systemInstruction": { "type": "string", "maxLength": 2000 },
+        "temperature": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Individual message in a conversation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "conversationId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "enum": ["user", "assistant", "system"] },
+        "content": { "type": "string", "maxLength": 50000 },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "role", "content", "timestamp"]
+    },
+    "UserProject": {
+      "title": "UserProject",
+      "description": "User created projects and workflows",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "category": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title"]
+    },
+    "UserMedia": {
+      "title": "UserMedia",
+      "description": "User media and generated video assets",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "type": { "type": "string", "maxLength": 50 },
+        "url": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "url"]
+    },
+    "UserSettings": {
+      "title": "UserSettings",
+      "description": "User application settings and preferences",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "language": { "type": "string", "maxLength": 30 },
+        "theme": { "type": "string", "maxLength": 30 },
+        "notifications": { "type": "boolean" },
+        "aiLanguage": { "type": "string", "maxLength": 30 },
+        "saveHistory": { "type": "boolean" },
+        "conversationMemory": { "type": "boolean" },
+        "responseStyle": { "type": "string", "maxLength": 30 },
+        "locationPermission": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId"]
+    },
+    "UserUsage": {
+      "title": "UserUsage",
+      "description": "User usage telemetry and quota tracking",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "aiTokensUsed": { "type": "number" },
+        "mapQueries": { "type": "number" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId"]
+    },
+    "UserLocation": {
+      "title": "UserLocation",
+      "description": "User saved and selected locations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "address": { "type": "string", "maxLength": 250 },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "category": { "type": "string", "maxLength": 50 },
+        "savedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "lat", "lng"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User primary profile document"
+    },
+    "/profiles/{userId}": {
+      "schema": "UserProfile",
+      "description": "Public user profile projection"
+    },
+    "/conversations/{conversationId}": {
+      "schema": "Conversation",
+      "description": "Top-level user conversation document"
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Messages within conversation"
+    },
+    "/projects/{projectId}": {
+      "schema": "UserProject",
+      "description": "User project items"
+    },
+    "/media/{mediaId}": {
+      "schema": "UserMedia",
+      "description": "User media and generated assets"
+    },
+    "/settings/{userId}": {
+      "schema": "UserSettings",
+      "description": "User settings document"
+    },
+    "/usage/{userId}": {
+      "schema": "UserUsage",
+      "description": "User usage document"
+    },
+    "/locations/{locationId}": {
+      "schema": "UserLocation",
+      "description": "User saved location documents"
+    }
+  }
+}
